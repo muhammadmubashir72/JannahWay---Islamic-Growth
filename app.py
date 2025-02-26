@@ -1,5 +1,13 @@
 import streamlit as st
 import requests
+import io
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from datetime import datetime
 
 BASE_URL = "https://api.alquran.cloud/v1"
 
@@ -28,7 +36,7 @@ st.set_page_config(
     layout="wide" 
 )
 # Sidebar Navigation
-st.sidebar.title("🌟 JannahWay Portal")
+st.sidebar.title("🌟 JannahWay")
 dark_mode = st.sidebar.toggle("🌙 Dark Mode")
 
 menu = st.sidebar.radio(
@@ -75,6 +83,8 @@ if dark_mode:
     """, unsafe_allow_html=True)
 
 def home_section():
+
+
     # Custom CSS styling
     st.markdown("""
     <style>
@@ -122,6 +132,15 @@ def home_section():
             text-align: center;
             min-height: 300px;
         }
+            @media screen and (max-width: 600px) {
+                h1 { font-size: 20px !important; }
+                h3 { font-size: 16px !important; }
+            }
+            @media screen and (min-width: 601px) {
+                h1 { font-size: 42px !important; }
+                h3 { font-size: 24px !important; }
+            }
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -401,13 +420,24 @@ def home_section():
                 prev_asma_nabi()
         with btn_col2:
             if st.button("Next →", key="next_button"):
-                next_asma_nabi()
-                
-                
-                
+                next_asma_nabi()            
 # --------------- Quran Section 📖 ---------------
 def quran_section():
-    st.markdown("<h1>📖 Quran Section</h1>", unsafe_allow_html=True)
+
+    # Custom CSS for Responsive Design
+    st.markdown("""
+        <style>
+            @media screen and (max-width: 600px) {
+                h1 { font-size: 20px !important; }
+            }
+            @media screen and (min-width: 601px) {
+                h1 { font-size: 42px !important; }
+            }
+            }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<h1 class='text-center' style='color: #1E563C; text-align: center;'>📖 Quran Section</h1>", unsafe_allow_html=True)
     
     if 'current_view' not in st.session_state:
         st.session_state.current_view = "surah"
@@ -492,9 +522,24 @@ def quran_section():
                 st.success("Bookmarks cleared!")
         else:
             st.warning("No bookmarks yet. Start exploring to save some!")
+
 # --------------- Tasbeeh Section 📿 ---------------
 def tasbeeh_section():
-    st.markdown("<h1>📿 Dhikr Counter</h1>", unsafe_allow_html=True)
+    # Custom CSS for Responsive Design
+    st.markdown("""
+        <style>
+            @media screen and (max-width: 600px) {
+                h1 { font-size: 20px !important; }
+            }
+            @media screen and (min-width: 601px) {
+                h1 { font-size: 42px !important; }
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+
+    
+    st.markdown("<h1 class='text-center' style='color: #1E563C; text-align: center;'>📿 Dhikr Counter</h1>", unsafe_allow_html=True)
     st.write("🔢 Click the buttons to count your dhikr.")
 
     # List of 50 Adhkar
@@ -521,28 +566,317 @@ def tasbeeh_section():
     # Store tasbeeh counts in session state
     if "tasbeeh_counts" not in st.session_state:
         st.session_state.tasbeeh_counts = {dhikr: 0 for dhikr in adhkar_list}
+    
+    # Add search functionality
+    search_query = st.text_input("🔍 Search for a dhikr:", "")
+    
+    # Add category selection
+    category_options = ["All Adhkar", "Most Used", "SubhanAllah variations", "Rabbi prayers", "Allahumma prayers"]
+    selected_category = st.selectbox("Select Category:", category_options)
+    
+    # Filter adhkar based on search and category
+    filtered_adhkar = adhkar_list
+    
+    if search_query:
+        filtered_adhkar = [dhikr for dhikr in adhkar_list if search_query.lower() in dhikr.lower()]
+    
+    if selected_category == "Most Used":
+        # Sort by most used and take top 10
+        filtered_adhkar = sorted(adhkar_list, key=lambda x: st.session_state.tasbeeh_counts.get(x, 0), reverse=True)[:10]
+    elif selected_category == "SubhanAllah variations":
+        filtered_adhkar = [dhikr for dhikr in adhkar_list if "SubhanAllah" in dhikr]
+    elif selected_category == "Rabbi prayers":
+        filtered_adhkar = [dhikr for dhikr in adhkar_list if "Rabbi" in dhikr]
+    elif selected_category == "Allahumma prayers":
+        filtered_adhkar = [dhikr for dhikr in adhkar_list if "Allahumma" in dhikr]
+    
+    # Create tabs for different views
+    tab1, tab2 = st.tabs(["Card View", "List View"])
+    
+    with tab1:
+        # Display Tasbeehs in a responsive grid layout
+        col_count = 3  # Number of columns in the grid
+        
+        # Create rows for every col_count tasbeehs
+        for i in range(0, len(filtered_adhkar), col_count):
+            cols = st.columns(col_count)
+            
+            # Fill each column in this row
+            for j in range(col_count):
+                if i + j < len(filtered_adhkar):
+                    tasbeeh = filtered_adhkar[i + j]
+                    count = st.session_state.tasbeeh_counts.get(tasbeeh, 0)
+                    
+                    with cols[j]:
+                        st.markdown(f"""
+                        <div style='border:1px solid #e0e0e0; border-radius:10px; padding:10px; margin-bottom:10px;'>
+                            <p style='font-weight:bold; font-size:16px;'>{tasbeeh}</p>
+                            <h2 style='text-align:center; font-size:24px;'>{count}</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            if st.button(f"➕", key=f"inc_card_{tasbeeh}"):
+                                st.session_state.tasbeeh_counts[tasbeeh] += 1
+                                st.rerun()
+                        with c2:
+                            if st.button(f"🔄", key=f"reset_card_{tasbeeh}"):
+                                st.session_state.tasbeeh_counts[tasbeeh] = 0
+                                st.rerun()
+    
+    with tab2:
+        # Display Tasbeehs in a list view
+        for tasbeeh in filtered_adhkar:
+            count = st.session_state.tasbeeh_counts.get(tasbeeh, 0)
+            
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                st.write(f"📿 **{tasbeeh}**: {count}")
+            with col2:
+                if st.button(f"➕ Count", key=f"inc_list_{tasbeeh}"):
+                    st.session_state.tasbeeh_counts[tasbeeh] += 1
+                    st.rerun()
+            with col3:
+                if st.button(f"🔄 Reset", key=f"reset_list_{tasbeeh}"):
+                    st.session_state.tasbeeh_counts[tasbeeh] = 0
+                    st.rerun()
 
-    # Display Tasbeehs  
-    for tasbeeh, count in st.session_state.tasbeeh_counts.items():
-        st.write(f"📿 **{tasbeeh}**: {count}")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(f"➕ {tasbeeh}", key=f"inc_{tasbeeh}"):
-                st.session_state.tasbeeh_counts[tasbeeh] += 1
-        with col2:
-            if st.button(f"🔄 Reset {tasbeeh}", key=f"reset_{tasbeeh}"):
-                st.session_state.tasbeeh_counts[tasbeeh] = 0
-
+    # Add a section to display total counts and statistics
+    st.markdown("---")
+    st.subheader("📊 Statistics")
+    total_dhikr = sum(st.session_state.tasbeeh_counts.values())
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric(label="Total Dhikr Count", value=total_dhikr)
+    with col2:
+        # Find the most recited dhikr
+        if total_dhikr > 0:
+            most_recited = max(st.session_state.tasbeeh_counts.items(), key=lambda x: x[1])
+            st.metric(label="Most Recited", value=most_recited[0], delta=most_recited[1])
+    
     # Custom Tasbeeh input
-    new_tasbeeh = st.text_input("➕ Add Custom Tasbeeh:")
-    if st.button("Add Tasbeeh"):
-        if new_tasbeeh and new_tasbeeh not in st.session_state.tasbeeh_counts:
-            st.session_state.tasbeeh_counts[new_tasbeeh] = 0
+    st.markdown("---")
+    st.subheader("➕ Add Custom Dhikr")
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        new_tasbeeh = st.text_input("Enter custom dhikr phrase:", key="custom_dhikr_input")
+    with col2:
+        if st.button("Add"):
+            if new_tasbeeh and new_tasbeeh not in st.session_state.tasbeeh_counts:
+                st.session_state.tasbeeh_counts[new_tasbeeh] = 0
+                st.success(f"Added '{new_tasbeeh}' to your dhikr list!")
+                st.rerun()
+            elif new_tasbeeh in st.session_state.tasbeeh_counts:
+                st.error("This dhikr is already in your list!")
+            else:
+                st.warning("Please enter a dhikr phrase first.")
+    
+    # Add export/import functionality
+    st.markdown("---")
+    st.subheader("💾 Save & Restore")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Export to PDF"):
+            try:
+                
+                # Create in-memory PDF
+                pdf_buffer = io.BytesIO()
+                doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+                styles = getSampleStyleSheet()
+                
+                # Create custom styles
+                title_style = ParagraphStyle(
+                    'Title',
+                    parent=styles['Heading1'],
+                    alignment=1,  # Center alignment
+                )
+                
+                # Build the document content
+                content = []
+                
+                # Add title and date
+                content.append(Paragraph("Dhikr Counter Report", title_style))
+                content.append(Spacer(1, 20))
+                content.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles["Normal"]))
+                content.append(Spacer(1, 20))
+                
+                # Create table data
+                data = [["Dhikr", "Count"]]
+                
+                # Add only dhikr that have been counted
+                for dhikr, count in sorted(st.session_state.tasbeeh_counts.items(), key=lambda x: x[1], reverse=True):
+                    if count > 0:  # Only include dhikr with counts > 0
+                        data.append([dhikr, str(count)])
+                
+                # Add total count
+                data.append(["Total", str(sum(st.session_state.tasbeeh_counts.values()))])
+                
+                # Create the table
+                if len(data) > 1:
+                    table = Table(data, colWidths=[400, 100])
+                    table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (1, 0), colors.lightgrey),
+                        ('TEXTCOLOR', (0, 0), (1, 0), colors.black),
+                        ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+                        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+                        ('BOTTOMPADDING', (0, 0), (1, 0), 12),
+                        ('BACKGROUND', (0, -1), (1, -1), colors.lightgrey),
+                        ('FONTNAME', (0, -1), (1, -1), 'Helvetica-Bold'),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ]))
+                    content.append(table)
+                else:
+                    content.append(Paragraph("No dhikr counts to display.", styles["Normal"]))
+                
+                # Build the PDF
+                doc.build(content)
+                
+                # Prepare download button
+                pdf_data = pdf_buffer.getvalue()
+                st.download_button(
+                    label="Download PDF",
+                    data=pdf_data,
+                    file_name=f"dhikr_report_{datetime.now().strftime('%Y%m%d')}.pdf",
+                    mime="application/pdf"
+                )
+            except Exception as e:
+                st.error(f"Error generating PDF: {e}")
+                st.info("Make sure you have ReportLab installed. You can install it with 'pip install reportlab'")
+    
+    with col2:
+        st.markdown("**Import Data:**")
+        # Simpler approach for importing - using text input
+        import_text = st.text_area("Paste your dhikr counts in format 'dhikr:count' (one per line):", 
+                                height=100,
+                                help="Example: SubhanAllah:33")
+        
+        if st.button("Import"):
+            if import_text:
+                try:
+                    new_counts = {}
+                    for line in import_text.strip().split('\n'):
+                        if ':' in line:
+                            dhikr, count = line.split(':', 1)
+                            dhikr = dhikr.strip()
+                            count = int(count.strip())
+                            new_counts[dhikr] = count
+                    
+                    # Update session state with new counts
+                    st.session_state.tasbeeh_counts.update(new_counts)
+                    st.success(f"Successfully imported {len(new_counts)} dhikr counts!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error importing data: {e}")
+                    st.info("Make sure your format is correct (dhikr:count, one per line)")
+            else:
+                st.warning("Please enter data to import.")
+                
+    # Option to reset all counts
+    if st.button("🗑️ Reset All Counts", key="reset_all"):
+        if st.session_state.tasbeeh_counts:
+            st.session_state.tasbeeh_counts = {dhikr: 0 for dhikr in st.session_state.tasbeeh_counts}
+            st.success("All counts have been reset to zero.")
+            st.rerun()
 
 # --------------- Duas & Wazaif Section 🤲 ---------------
 def duas_wazaif_section():
-    st.markdown("<h1>🤲 Islamic Duas & Wazaif</h1>", unsafe_allow_html=True)
+    
+    # Custom CSS with responsive heading
+    st.markdown("""
+    <style>
+        /* Responsive heading */
+        .responsive-heading {
+            font-size: calc(34px + 1vw);
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1E563C;
+            font-weight:bold;
+        }
+        
+        /* Responsive container for duas */
+        .dua-container {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        /* Responsive text sizing */
+        .dua-title {
+            font-size: calc(16px + 0.3vw);
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .dua-text {
+            font-size: calc(16px + 0.4vw);
+            line-height: 1.6;
+            text-align: right;
+            direction: rtl;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.03);
+            border-radius: 5px;
+        }
+        
+        /* Hover effect */
+        .dua-container:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Media queries for different screen sizes */
+        @media (max-width: 768px) {
+            .dua-container {
+                padding: 10px;
+            }
+            .responsive-heading {
+                
+                font-size: 22px;  /* Smaller on mobile */
+            }
+            .dua-title {
+                font-size: 16px;
+            }
+            .dua-text {
+                font-size: 18px;
+            }
+        }
+        
+        /* Custom category badges */
+        .category-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            color: white;
+            background-color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        
+        /* Divider style */
+        .dua-divider {
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border: 0;
+            border-top: 1px solid #eee;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
+    # Using the responsive heading class instead of h1
+    st.markdown("<div class='responsive-heading'>🤲 Islamic Duas & Wazaif</div>", unsafe_allow_html=True)
+
+    # Create columns for mobile-friendly layout
+    col1, col2 = st.columns([3, 1])
+    
     # Dua Categories
     categories = [
         "🌅 Daily Life Duas",
@@ -553,7 +887,12 @@ def duas_wazaif_section():
     ]
 
     # Default: Show all duas
-    selected_category = st.selectbox("📜 Select a Dua Category", ["📜 Show All"] + categories)
+    with col1:
+        selected_category = st.selectbox("📜 Select a Dua Category", ["📜 Show All"] + categories)
+
+    # Add a search box in the second column
+    with col2:
+        search_query = st.text_input("🔍 Search Duas", "")
 
     # **DUAS COLLECTION**
     duas_collection = {
@@ -619,24 +958,82 @@ def duas_wazaif_section():
         ]
     }
 
+    # Function to check if dua matches search query
+    def dua_matches_search(title, dua, query):
+        if not query:
+            return True
+        query = query.lower()
+        return query in title.lower() or query in dua.lower()
+
     # Display Duas
     if selected_category == "📜 Show All":
         for category, duas in duas_collection.items():
-            st.markdown(f"### {category}")
-    
-            for title, dua in duas:
-                st.markdown(f"#### {title}")
-                # st.write(f"<div dir='rtl' style='font-size:22px; margin:10px 0; '>{dua}</div>", unsafe_allow_html=True)
-                st.markdown(f"<div dir='rtl' style='font-size:22px; margin:10px 0; '> <p> {dua} <p/></div>", unsafe_allow_html=True)
-                st.markdown("---")
+            # Display category with badge
+            st.markdown(f"<div class='category-badge'>{category}</div>", unsafe_allow_html=True)
+            
+            # Filter duas by search query
+            matching_duas = [(title, dua) for title, dua in duas if dua_matches_search(title, dua, search_query)]
+            
+            if not matching_duas:
+                st.write("No matching duas found in this category.")
+                continue
+                
+            # Create a 2-column layout for larger screens
+            cols = st.columns(2)
+            
+            for i, (title, dua) in enumerate(matching_duas):
+                # Alternate between columns
+                with cols[i % 2]:
+                    st.markdown(f"""
+                    <div class="dua-container">
+                        <div class="dua-title">{title}</div>
+                        <div class="dua-text">{dua}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            st.markdown("<hr class='dua-divider'>", unsafe_allow_html=True)
     else:
-        st.markdown(f"### {selected_category}")
-        for title, dua in duas_collection[selected_category]:
-            st.markdown(f"#### {title}")
-            st.markdown(f"<div dir='rtl' style='font-size:22px; margin:10px 0; '>{dua}</div>", unsafe_allow_html=True)
-            st.markdown("---")
-
-# --------------- Ramadan Section 🕌 (Prayer Times) ---------------
+        st.markdown(f"<div class='category-badge'>{selected_category}</div>", unsafe_allow_html=True)
+        
+        # Filter duas by search query
+        matching_duas = [(title, dua) for title, dua in duas_collection[selected_category] 
+                        if dua_matches_search(title, dua, search_query)]
+        
+        if not matching_duas:
+            st.write("No matching duas found in this category.")
+        else:
+            # Create a 2-column layout for larger screens, but collapse to 1 column on mobile
+            use_container_width = st.checkbox("Single column view", value=False)
+            
+            if use_container_width:
+                # Single column layout
+                for title, dua in matching_duas:
+                    st.markdown(f"""
+                    <div class="dua-container">
+                        <div class="dua-title">{title}</div>
+                        <div class="dua-text">{dua}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                # Two column layout
+                cols = st.columns(2)
+                for i, (title, dua) in enumerate(matching_duas):
+                    with cols[i % 2]:
+                        st.markdown(f"""
+                        <div class="dua-container">
+                            <div class="dua-title">{title}</div>
+                            <div class="dua-text">{dua}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+    # Add a footer with mobile-friendly styling
+    st.markdown("""
+    <div style="text-align: center; margin-top: 30px; padding: 10px; font-size: 12px; color: #666;">
+        📱 This section is optimized for all devices including mobile phones and tablets.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # --------------- Ramadan Section 🕌 (Prayer Times) ---------------
 def get_prayer_times(country, city):
     """ Fetches prayer times from API """
     url = f"https://api.aladhan.com/v1/timingsByCity?city={city}&country={country}&method=2"
@@ -646,35 +1043,66 @@ def get_prayer_times(country, city):
         return data["data"]["timings"]
     else:
         return None
+
 def ramadan_section():
-    st.markdown("<h1 style='color: #FFD700;'>🕌 Prayer Times</h1>", unsafe_allow_html=True)
+    # Custom CSS for Responsive Design
+    st.markdown("""
+        <style>
+            @media screen and (max-width: 600px) {
+                h1 { font-size: 20px !important; }
+                h3 { font-size: 16px !important; }
+                .prayer-card { font-size: 14px !important; padding: 8px; }
+            }
+            @media screen and (min-width: 601px) {
+                h1 { font-size: 42px !important; }
+                h3 { font-size: 24px !important; }
+                .prayer-card { font-size: 18px !important; padding: 12px; }
+            }
+            .prayer-card {
+                background-color: #333; 
+                border-radius: 10px; 
+                color: #E5E5E5; 
+                text-align: center;
+                margin-bottom: 10px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
-    countries = ["Pakistan", "Saudi Arabia", "UAE", "USA", "UK", "India", "Bangladesh", "Egypt", "Turkey", "Malaysia"]
-    country = st.selectbox("🌍 Select your country:", countries)
-    city = st.text_input("🏙️ Enter your city:")
+    # Page Title
+    st.markdown("<h1 style='color: #1E563C; text-align: center;'>🕌 Prayer Times</h1>", unsafe_allow_html=True)
     
-    if st.button("🔍 Get Prayer Times"):
-        
-        if city:
-            timings = get_prayer_times(country, city)
-            if timings:
-                st.markdown("<h3 style='color: #FFD700;'>🕌 Today's Prayer Times:</h3>", unsafe_allow_html=True)
+    # Responsive Layout
+    col1, col2 = st.columns([1, 2])
 
-                for prayer, time in timings.items():
-                    if prayer in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
-                        st.markdown(
-                            f"""
-                            <div style='background-color: #333; padding: 10px; border-radius: 10px; 
-                                        margin-bottom: 10px; color: #E5E5E5;'>
+    with col1:
+        countries = ["Pakistan", "Saudi Arabia", "UAE", "USA", "UK", "India", "Bangladesh", "Egypt", "Turkey", "Malaysia"]
+        country = st.selectbox("🌍 Select your country:", countries)
+        city = st.text_input("🏙️ Enter your city:")
+
+        if st.button("🔍 Get Prayer Times"):
+            if city:
+                timings = get_prayer_times(country, city)
+                if timings:
+                    st.markdown("<h3 style='color: #FFD700;'>🕌 Today's Prayer Times:</h3>", unsafe_allow_html=True)
+
+                    # Grid-style prayer times layout
+                    prayer_col1, prayer_col2 = st.columns(2)
+                    
+                    for i, (prayer, time) in enumerate(timings.items()):
+                        if prayer in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
+                            prayer_card = f"""
+                            <div class="prayer-card">
                                 <strong style='color: #FFD700;'>{prayer}:</strong> 🕰️ {time}
                             </div>
-                            """, 
-                            unsafe_allow_html=True
-                        )
+                            """
+                            if i % 2 == 0:
+                                prayer_col1.markdown(prayer_card, unsafe_allow_html=True)
+                            else:
+                                prayer_col2.markdown(prayer_card, unsafe_allow_html=True)
+                else:
+                    st.error("⚠️ Could not fetch prayer times. Please check your city name.")
             else:
-                st.error("⚠️ Could not fetch prayer times. Please check your city name.")
-        else:
-            st.warning("⚠️ Please enter a city.")
+                st.warning("⚠️ Please enter a city.")
 
 # --------------- Dynamic Page Content ---------------
 if menu == "🏠 Home":
