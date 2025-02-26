@@ -1045,64 +1045,100 @@ def get_prayer_times(country, city):
         return None
 
 def ramadan_section():
-    # Custom CSS for Responsive Design
     st.markdown("""
         <style>
+            /* Responsive Styling */
             @media screen and (max-width: 600px) {
-                h1 { font-size: 20px !important; }
-                h3 { font-size: 16px !important; }
-                .prayer-card { font-size: 14px !important; padding: 8px; }
+                h1 { font-size: 22px !important; }
+                h3 { font-size: 18px !important; }
+                .prayer-card { font-size: 14px !important; padding: 10px; }
             }
             @media screen and (min-width: 601px) {
-                h1 { font-size: 42px !important; }
-                h3 { font-size: 24px !important; }
-                .prayer-card { font-size: 18px !important; padding: 12px; }
+                h1 { font-size: 36px !important; }
+                h3 { font-size: 22px !important; }
+                .prayer-card { font-size: 16px !important; padding: 15px; }
             }
-            .prayer-card {
-                background-color: #333; 
-                border-radius: 10px; 
-                color: #E5E5E5; 
+
+            /* Centering the entire section */
+            .main-container {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
                 text-align: center;
-                margin-bottom: 10px;
+                width: 100%;
             }
+
+            /* Style for prayer cards */
+            .prayer-card {
+                background-color: #333;
+                border-radius: 10px;
+                color: #E5E5E5;
+                text-align: center;
+                margin: 10px auto;
+                padding: 15px;
+                font-size: 16px;
+                width: 100%;
+                max-width: 400px; /* Balanced size */
+                box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.3);
+                transition: transform 0.3s ease-in-out, background-color 0.3s;
+            }
+
+            .prayer-card:hover {
+                background-color: #444;
+                transform: scale(1.05);
+            }
+
         </style>
     """, unsafe_allow_html=True)
 
-    # Page Title
+    # Page Title - Centered
     st.markdown("<h1 style='color: #1E563C; text-align: center;'>🕌 Prayer Times</h1>", unsafe_allow_html=True)
-    
-    # Responsive Layout
-    col1, col2 = st.columns([1, 2])
 
-    with col1:
-        countries = ["Pakistan", "Saudi Arabia", "UAE", "USA", "UK", "India", "Bangladesh", "Egypt", "Turkey", "Malaysia"]
-        country = st.selectbox("🌍 Select your country:", countries)
-        city = st.text_input("🏙️ Enter your city:")
+    # Centering the whole section
+    st.markdown("<div class='main-container'>", unsafe_allow_html=True)
 
-        if st.button("🔍 Get Prayer Times"):
-            if city:
-                timings = get_prayer_times(country, city)
-                if timings:
-                    st.markdown("<h3 style='color: #FFD700;'>🕌 Today's Prayer Times:</h3>", unsafe_allow_html=True)
+    # Input Section (Centered)
+    countries = ["Pakistan", "Saudi Arabia", "UAE", "USA", "UK", "India", "Bangladesh", "Egypt", "Turkey", "Malaysia"]
+    country = st.selectbox("🌍 Select your country:", countries)
+    city = st.text_input("🏙️ Enter your city:")
 
-                    # Grid-style prayer times layout
-                    prayer_col1, prayer_col2 = st.columns(2)
-                    
-                    for i, (prayer, time) in enumerate(timings.items()):
-                        if prayer in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
-                            prayer_card = f"""
-                            <div class="prayer-card">
-                                <strong style='color: #FFD700;'>{prayer}:</strong> 🕰️ {time}
-                            </div>
-                            """
-                            if i % 2 == 0:
-                                prayer_col1.markdown(prayer_card, unsafe_allow_html=True)
-                            else:
-                                prayer_col2.markdown(prayer_card, unsafe_allow_html=True)
-                else:
-                    st.error("⚠️ Could not fetch prayer times. Please check your city name.")
+    if st.button("🔍 Get Prayer Times"):
+        if city:
+            timings = get_prayer_times(country, city)
+            if timings:
+                st.markdown("""
+                    <h3 style="
+                        color: #FFD700; 
+                        text-align: center; 
+                        font-size: 22px; 
+                        font-weight: bold; 
+                        margin: 20px 0; 
+                        padding: 10px; 
+                        background: linear-gradient(to right, #1E563C, #4CAF50);
+                        border-radius: 8px;
+                    ">
+                        🕌 Today's Prayer Times
+                    </h3>
+                """, unsafe_allow_html=True)
+
+                # Display Prayer Times - Centered
+                for prayer, time in timings.items():
+                    if prayer in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
+                        prayer_card = f"""
+                        <div class="prayer-card">
+                            <strong style='color: #FFD700;'>{prayer}:</strong> 🕰️ {time}
+                        </div>
+                        """
+                        st.markdown(prayer_card, unsafe_allow_html=True)
+
             else:
-                st.warning("⚠️ Please enter a city.")
+                st.error("⚠️ Could not fetch prayer times. Please check your city name.")
+        else:
+            st.warning("⚠️ Please enter a city.")
+
+    # Closing div for center alignment
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------- Dynamic Page Content ---------------
 if menu == "🏠 Home":
