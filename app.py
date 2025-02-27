@@ -531,13 +531,22 @@ def quran_section():
                 with col1:
                     st.write(f"✅ {bm}")
                 with col2:
+                    # if st.button("🗑️ Remove", key=f"remove_{bm}"):
+                    #     st.session_state.bookmarks.remove(bm)
+                    #     st.experimental_rerun()
                     if st.button("🗑️ Remove", key=f"remove_{bm}"):
                         st.session_state.bookmarks.remove(bm)
-                        st.experimental_rerun()
+                        st.rerun()
+
             
+            # if st.button("Clear All Bookmarks"):
+            #     st.session_state.bookmarks = []
+            #     st.success("Bookmarks cleared!")
             if st.button("Clear All Bookmarks"):
                 st.session_state.bookmarks = []
                 st.success("Bookmarks cleared!")
+                st.rerun()
+
         else:
             st.warning("No bookmarks yet. Start exploring to save some!")
 
