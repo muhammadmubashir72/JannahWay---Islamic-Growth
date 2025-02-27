@@ -84,7 +84,6 @@ if dark_mode:
 
 def home_section():
 
-
     # Custom CSS styling
     st.markdown("""
     <style>
@@ -469,26 +468,45 @@ def quran_section():
                 
                 if surah_number != 9 and surah_number != 1:
                     st.markdown("<div dir='rtl' style='font-size:28px; text-align:center; margin:20px 0;'>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>", unsafe_allow_html=True)
-                
                 for i, verse in enumerate(surah_data[0]["ayahs"]):
-                    eng_verse = surah_data[1]["ayahs"][i]
+                    eng_verse = surah_data[1]["ayahs"][i]  # انگریزی ترجمہ
                     
                     st.markdown(f"""
-                    <div style='background-color: {"#333" if dark_mode else "#f8f9fa"}; 
-                               padding: 15px; 
-                               border-radius: 10px; 
-                               margin-bottom: 15px;'>
-                        <p style='font-weight: bold; margin-bottom: 5px; color: {"#FFD700" if dark_mode else "#0066cc"};'>
-                            Verse {verse['numberInSurah']}
-                        </p>
-                        <div dir='rtl' style='font-size: 24px; margin-bottom: 10px;'>
-                            {verse['text']}
-                        </div>
-                        <div style='font-size: 16px; margin-top: 10px; color: {"#E5E5E5" if dark_mode else "#333"};'>
-                            {eng_verse['text']}
-                        </div>
+                <div style='background-color: {"#333" if dark_mode else "#f8f9fa"}; 
+                           padding: 15px; 
+                           border-radius: 10px; 
+                           margin-bottom: 15px;'>
+                    <p style='font-weight: bold; margin-bottom: 5px; color: {"#FFD700" if dark_mode else "#0066cc"};'>
+                        Verse {verse['numberInSurah']}
+                    </p>
+                    <div dir='rtl' style='font-size: 24px; margin-bottom: 10px; color: {"white" if dark_mode else "black"};'>
+                        {verse['text']}  <!-- عربی متن -->
                     </div>
-                    """, unsafe_allow_html=True)
+                    <div style='font-size: 16px; margin-top: 10px; color: {"#E5E5E5" if dark_mode else "#333"};'>
+                        {eng_verse['text']}  <!-- انگریزی ترجمہ -->
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # for i, verse in enumerate(surah_data[0]["ayahs"]):
+                #     eng_verse = surah_data[1]["ayahs"][i]
+                    
+                #     st.markdown(f"""
+                #     <div style='background-color: {"#333" if dark_mode else "#f8f9fa"}; 
+                #                padding: 15px; 
+                #                border-radius: 10px; 
+                #                margin-bottom: 15px;'>
+                #         <p style='font-weight: bold; margin-bottom: 5px; color: {"#FFD700" if dark_mode else "#0066cc"};'>
+                #             Verse {verse['numberInSurah']}
+                #         </p>
+                #         <div dir='rtl' style='font-size: 24px; margin-bottom: 10px; color:black;'>
+                #             {verse['text']}
+                #         </div>
+                #         <div style='font-size: 16px; margin-top: 10px; color: {"#E5E5E5" if dark_mode else "#333"};'>
+                #             {eng_verse['text']}
+                #         </div>
+                #     </div>
+                #     """, unsafe_allow_html=True)
                 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -1043,6 +1061,8 @@ def get_prayer_times(country, city):
         return data["data"]["timings"]
     else:
         return None
+
+# --------------- Ramadan Section 🕌 --------------
 
 def ramadan_section():
     st.markdown("""
